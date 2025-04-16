@@ -17,7 +17,7 @@ read -p "Введите сообщение для коммита: " commit_messa
 
 git commit -m "$commit_message"
 
-git push $REPO_URL master
+git push $REPO_URL master --force
 
 cowsay "Коммит выполнен и изменения отправлены в репозиторий."
 
