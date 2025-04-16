@@ -7,26 +7,31 @@ data = []
 school = []
 personal = []
 
+
 def convert_to_delta(s):
     minutes, seconds = s.split(':')
-    seconds, milliseconds = seconds.split('.')
-    return datetime.timedelta(minutes=int(minutes), seconds=int(seconds), microseconds=int(milliseconds))
+    seconds, hundredths = seconds.split('.')
+    return datetime.timedelta(
+        minutes=int(minutes),
+        seconds=int(seconds),
+        microseconds=int(hundredths) * 10_000  # 0.01 сек = 10_000 микросекунд
+    )
 
 def convert_to_string(t):
-    total = int(t.total_seconds())
-    minutes, seconds = divmod(total, 60)
-    microseconds = int(t.microseconds / 10000)
-    return f"{minutes}:{seconds}.{microseconds}"
+    total_seconds = t.seconds + t.days * 86400
+    minutes, seconds = divmod(total_seconds, 60)
+    hundredths = int(t.microseconds / 10_000)
+    return f"{minutes:02}:{seconds:02}.{hundredths:02}"
 
 def check_file():
     if not os.path.isfile("input.xlsx"):
         wb = Workbook()
-        wb.remove(wb.get_sheet_by_name("Sheet"))
+        wb.remove(wb["Sheet"])
 
         for i in range(5):
             wb.create_sheet(f"Забег{i + 1}")
             for _ in range(5):
-                wb.get_sheet_by_name(f"Забег{i + 1}").append(["Имя","Школа","00:00.00"])
+                wb[(f"Забег{i + 1}")].append(["Имя","Школа","00:00.00"])
         wb.save("input.xlsx")
         wb.close()
         exit()
@@ -35,7 +40,7 @@ def load_data():
     wb = load_workbook("input.xlsx")
 
     for sheet in wb.sheetnames:
-        s = wb.get_sheet_by_name(sheet)
+        s = wb[sheet]
         for row in s.iter_rows(values_only=True):
             data.append(list(row))
 
@@ -71,17 +76,17 @@ def sort_data():
 def save_reports():
     wbo = Workbook()
 
-    wbo.remove(wbo.get_sheet_by_name("Sheet"))
+    wbo.remove(wbo["Sheet"])
     wbo.create_sheet("Школы")
 
     for row in school:
-        wbo.get_sheet_by_name("Школы").append(row)
+        wbo["Школы"].append(row)
 
 
     wbo.create_sheet("Персональный")
 
     for row in personal:
-        wbo.get_sheet_by_name("Персональный").append(row)
+        wbo["Персональный"].append(row)
 
     wbo.save("output.xlsx")
     wbo.close()
